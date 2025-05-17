@@ -9,7 +9,7 @@ environment {
   stages { 
     stage('Checkout') { 
       steps { 
-        git branch: 'main', url: ' https://github.com/509/8.2CDevSecOps.git' 
+        git branch: 'main', url: ' https://github.com/Kk509/8.2CDevSecOps.git' 
       } 
     } 
  
