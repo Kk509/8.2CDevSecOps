@@ -1,5 +1,10 @@
 pipeline { 
-  agent any 
+  agent any
+
+environment {
+    SONAR_SCANNER_VERSION = '5.0.1.3006'
+    SONAR_SCANNER_HOME = 'sonar-scanner'
+  } 
  
   stages { 
     stage('Checkout') { 
@@ -31,8 +36,30 @@ pipeline {
       steps { 
         sh 'npm audit || true' // This will show known CVEs in the output 
       } 
+    }
+
+    stage('SonarCloud Analysis') {
+    steps {
+    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+        sh '''
+        # Download SonarScanner CLI
+        wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+
+        # Unzip the scanner
+        unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+
+        # Rename the folder for easier use
+        mv sonar-scanner-${SONAR_SCANNER_VERSION}-linux $SONAR_SCANNER_HOME
+
+        # Add scanner to PATH
+        export PATH=$PWD/$SONAR_SCANNER_HOME/bin:$PATH
+
+        # Run SonarScanner
+        sonar-scanner -Dsonar.login=$SONAR_TOKEN
+        '''
+            }
+        }
     } 
- 
   } 
 } 
 
