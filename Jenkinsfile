@@ -15,60 +15,61 @@ pipeline {
 
     stage('Install Dependencies') { 
       steps { 
-        sh 'npm install' 
+        bat 'npm install'
       } 
     } 
 
     stage('Run Tests') { 
       steps { 
-        sh 'npm test || true' // Allows pipeline to continue despite test failures 
+        bat 'npm test || exit 0'  // Allows pipeline to continue despite test failures 
       } 
     } 
 
     stage('Generate Coverage Report') { 
       steps { 
-        sh 'npm run coverage || true' 
+        bat 'npm run coverage || exit 0' 
       } 
     } 
 
     stage('NPM Audit (Security Scan)') { 
       steps { 
-        sh 'npm audit || true' 
+        bat 'npm audit || exit 0'
       } 
     }
 
     stage('SonarCloud Analysis') {
-      steps {
-        withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
-          sh '''
-            set -e
+  steps {
+    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+      sh '''
+        set -e
 
-            # Install wget and unzip if missing
-            if ! command -v wget > /dev/null; then
-              echo "Installing wget..."
-              apt-get update && apt-get install -y wget unzip
-            fi
+        # Install wget and unzip if not present
+        if ! command -v wget > /dev/null; then
+          echo "Installing wget and unzip..."
+          apt-get update && apt-get install -y wget unzip
+        fi
 
-            # Download SonarScanner CLI with forced output filename
-            wget -O sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
-            
-            # Verify download
-            ls -l sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
-            
-            # Unzip the scanner
-            unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
-            
-            # Rename the folder for easier use
-            mv sonar-scanner-${SONAR_SCANNER_VERSION}-linux $SONAR_SCANNER_HOME
-            
-            # Add scanner to PATH
-            export PATH=$PWD/$SONAR_SCANNER_HOME/bin:$PATH
-            
-            # Run SonarScanner
-            sonar-scanner -Dsonar.login=$SONAR_TOKEN
-          '''
-        }
-      }
-    } 
+        # Download the SonarScanner CLI zip
+        wget -O sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+
+        # Unzip it
+        unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+
+        # Rename the folder
+        mv sonar-scanner-${SONAR_SCANNER_VERSION}-linux $SONAR_SCANNER_HOME
+
+        # Set SonarScanner home in PATH
+        export PATH=$PWD/$SONAR_SCANNER_HOME/bin:$PATH
+
+        # Create a basic sonar-scanner.properties file
+        echo "sonar.host.url=https://sonarcloud.io" > $SONAR_SCANNER_HOME/conf/sonar-scanner.properties
+
+        # Run SonarScanner
+        sonar-scanner -Dsonar.token=$SONAR_TOKEN
+      '''
+    }
+  }
+}
+
   } 
-} 
+}
