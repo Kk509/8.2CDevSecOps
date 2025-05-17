@@ -2,8 +2,7 @@ pipeline {
   agent any
 
   environment {
-    SONAR_SCANNER_VERSION = '5.0.1.3006'
-    SONAR_SCANNER_HOME = 'sonar-scanner'
+    SONAR_TOKEN = credentials('SONAR_TOKEN')
   } 
 
   stages { 
@@ -39,35 +38,22 @@ pipeline {
 
 stage('SonarCloud Analysis') {
   steps {
-    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
-      sh '''
+            sh '''
+        #!/bin/bash
         set -e
 
-        # Install wget and unzip if not present
-        if ! command -v wget > /dev/null; then
-          echo "Installing wget and unzip..."
-          apt-get update && apt-get install -y wget unzip
-        fi
+        echo "[INFO] Downloading SonarScanner CLI..."
+        curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
 
-        # Download the SonarScanner CLI zip
-        wget -O sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+        echo "[INFO] Extracting..."
+        unzip -q sonar-scanner.zip
 
-        # Unzip it
-        unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+        echo "[INFO] Running SonarScanner..."
+        export PATH=$PWD/sonar-scanner-5.0.1.3006-linux/bin:$PATH
 
-        # Rename the folder
-        mv sonar-scanner-${SONAR_SCANNER_VERSION}-linux $SONAR_SCANNER_HOME
-
-        # Set SonarScanner home in PATH
-        export PATH=$PWD/$SONAR_SCANNER_HOME/bin:$PATH
-
-        # Create a basic sonar-scanner.properties file
-        echo "sonar.host.url=https://sonarcloud.io" > $SONAR_SCANNER_HOME/conf/sonar-scanner.properties
-
-        # Run SonarScanner
-        sonar-scanner -Dsonar.token=$SONAR_TOKEN
-      '''
-    }
+        sonar-scanner \
+            -Dsonar.login=$SONAR_TOKEN
+        '''
   }
 }
  
