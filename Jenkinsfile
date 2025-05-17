@@ -9,7 +9,7 @@ environment {
   stages { 
     stage('Checkout') { 
       steps { 
-        git branch: 'main', url: ' https://github.com/Kk509/8.2CDevSecOps.git' 
+        git branch: 'main', url: ' https://github.com/509/8.2CDevSecOps.git' 
       } 
     } 
  
@@ -43,7 +43,7 @@ environment {
     withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
         sh '''
         # Download SonarScanner CLI
-        wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+        curl https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
 
         # Unzip the scanner
         unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
@@ -63,3 +63,4 @@ environment {
   } 
 } 
 
+her
