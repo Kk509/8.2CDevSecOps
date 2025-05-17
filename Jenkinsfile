@@ -43,7 +43,7 @@ environment {
     withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
         sh '''
         # Download SonarScanner CLI
-        curl https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+        wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
 
         # Unzip the scanner
         unzip sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
@@ -57,10 +57,10 @@ environment {
         # Run SonarScanner
         sonar-scanner -Dsonar.login=$SONAR_TOKEN
         '''
-            }
-        }
+    }
+    }
     } 
   } 
 } 
 
-her
+
