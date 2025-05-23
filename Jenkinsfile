@@ -16,21 +16,33 @@ pipeline {
 
     stage('Run Tests') { 
       steps { 
-        sh 'npm test || exit 0'  // Allows pipeline to continue despite test failures 
+        sh 'npm test || true'  // Allows pipeline to continue despite test failures 
       } 
     } 
 
     stage('Generate Coverage Report') { 
       steps { 
-        sh 'npm run coverage || exit 0' 
+        sh 'npm run coverage || true' 
       } 
     } 
 
     stage('NPM Audit (Security Scan)') { 
       steps { 
-        sh 'npm audit || exit 0'
+        sh 'npm audit || true'
       } 
     }
 
+        stage('SonarCloud Analysis') {
+      steps {
+        withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+          sh '''
+            curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+            unzip sonar-scanner.zip
+            export PATH=$PATH:$PWD/sonar-scanner-5.0.1.3006-linux/bin
+            sonar-scanner -Dsonar.login=$SONAR_TOKEN
+          '''
+        }
+      }
+    }
   } 
 }
